@@ -1,0 +1,7 @@
+#Required packages
+#install using:
+#     pip install -r requirements.txt
+#or:
+#     python -m pip install -r requirements.txt
+pynput
+pyperclip

@@ -1,0 +1,23 @@
+= globalcopy
+
+Global keyboard shortcut utility to copy text to clipboard.
+
+== Usage
+
+* Prereq:
+** Python 3.8 or later.
+* Download or clone this repository.
+* Install packages:
+** `python -m pip install -r requirements.txt`
+* Add your own shortcuts and texts to be copied.
+** Edit link:globalcopy.ini[globalcopy.ini]
+* Start program:
+** `python globalcopy.py`
+* Use shortcuts from anywhere to copy text to clipboard.
+* Paste text to where you want it.
+
+== Sample use case
+
+Intranet username and password are required when logging in to corporate systems.
+
+Global shortcut makes it easy to copy username/password to clipboard and then paste it to login fields.
