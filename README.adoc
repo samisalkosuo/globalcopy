@@ -9,12 +9,32 @@ Global keyboard shortcut utility to copy text to clipboard.
 * Download or clone this repository.
 * Install packages:
 ** `python -m pip install -r requirements.txt`
-* Add your own shortcuts and texts to be copied.
-** Edit link:globalcopy.ini[globalcopy.ini]
+* Add your own shortcuts and texts to _globalcopy.yaml_.
 * Start program:
 ** `python globalcopy.py`
 * Use shortcuts from anywhere to copy text to clipboard.
 * Paste text to where you want it.
+
+== globalcopy.yaml
+
+Format of _globalcopy.yaml_
+
+```
+hot_keys:
+  - key: "<alt_gr>+c"
+    text: 'Text1'
+    desc: "Text1 copied to clipboard"
+  - key: "<alt_gr>+o"
+    text: 'Text2'
+    desc: "Text2 copied to clipboard"
+  - key: "<alt_gr>+i"
+    text: 'Text3'
+    desc: "Text2 copied to clipboard"
+  - key: "<alt_gr>+x"
+    text: "exit"
+    desc: "Exit."
+```
+Note: one of the hotkeys must have text `exit`. That hot key is used to exit program. If exit not specified, program must be forcefully killed.
 
 == Sample use case
 

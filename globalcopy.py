@@ -1,67 +1,71 @@
-from os.path import exists
-import configparser
+import yaml
+import os
 from pynput import keyboard
-import pyperclip
+import clipman
+clipman.init()
 
-HOTKEYS = []
-EXIT_NOW=False
+class ExitException(Exception): pass
 
-def exit():
-    print('Exiting...')
-    global EXIT_NOW
-    EXIT_NOW=True
+def load_hotkeys(file_path):
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(
+            f"File '{file_path}' not found.\n\n"
+            "Expected YAML file format:\n"
+            "hot_keys:\n"
+            "  - key: \"<alt_gr>+i\"\n"
+            "    text: \"Text to be copied\"\n"
+            "    desc: \"Description of this\"\n"
+            "  - key: \"<alt_gr>+j\"\n"
+            "    text: \"Another Text to be copied\"\n"
+            "    desc: \"Description of this one\"\n"
+            "  - key: \"<alt_gr>+x\"\n"
+            "    text: \"exit\"\n"
+            "    desc: \"Exit program. text must be 'exit'.\"\n"
+        )
 
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = yaml.safe_load(f)
 
-def configureShortcuts():
-    config = configparser.ConfigParser(strict=False)
-    customIniFile="globalcopy_custom.ini"
-    if  exists(customIniFile):
-        #read config from custom ini file
-        config.read(customIniFile)
-    else:
-        #read config from sample ini file
-        config.read('globalcopy.ini')
-    #group sections
-    global HOTKEYS
-    HOTKEYS = []
-    groupSections = config.sections()
-    shortcut_index=0
-    for shortcut in groupSections:
-        print("Shortcut: %s" % shortcut)
-        shortcutCfg=config[shortcut]
-        textToCopy=shortcutCfg["text"]
-        textToPrint=shortcutCfg["description"]
-        if textToCopy == "EXIT_COMMAND":
-            exec("HOTKEYS.append(keyboard.HotKey(keyboard.HotKey.parse('%s'), exit))" % shortcut)
-        else:
-            #create function to copy text to clipboard
-            exec("""
-def on_hotkey_%d():
-    pyperclip.copy('%s')
-    print('%s')
-""" % (shortcut_index, textToCopy, textToPrint))
-            #add hotkey
-            exec("HOTKEYS.append(keyboard.HotKey(keyboard.HotKey.parse('%s'), on_hotkey_%d))" % (shortcut, shortcut_index))
-            shortcut_index = shortcut_index + 1
+    result = {
+        entry['key']: {
+            'text': entry['text'],
+            'desc': entry['desc']
+        }
+        for entry in data.get('hot_keys', [])
+    }
 
-def on_press(listener, key):
-    for hotkey in HOTKEYS:
-        hotkey.press(listener.canonical(key))
+    return result
 
-def on_release(listener, key):
-    for hotkey in HOTKEYS:
-        hotkey.release(listener.canonical(key))
-    if EXIT_NOW==True:
-        return False
+def generate_hotkey_functions(config):
+    #global globalHotkeys
+    globalHotkeys = {}
+    for key_combo, info in config.items():
+        # Create a function using a closure to capture key_combo and info
+        def make_function(text, desc):
+            if text == "exit":
+                def action():
+                    raise ExitException()
+                return action
+            else:
+                def action():
+                    clipman.copy(text)
+                    print(desc)
+                return action
 
-
+        globalHotkeys[key_combo] = make_function(info['text'], info['desc'])
+    return globalHotkeys
 
 def main():
-    configureShortcuts()
-    with keyboard.Listener(
-            on_press=lambda *a: on_press(listener, *a),
-            on_release=lambda *a: on_release(listener, *a)) as listener:
-        listener.join()
+    print("Global copy started.")
+    globalHotkeyConfig = load_hotkeys('globalcopy.yaml')
+    globalHotkeys = generate_hotkey_functions(globalHotkeyConfig)
+    #global hotkeys
+    #see: https://github.com/moses-palmer/pynput/blob/master/docs/keyboard-usage.rst
+    with keyboard.GlobalHotKeys(globalHotkeys) as h:
+        try:
+            h.join()
+        except ExitException:
+            print("Exiting GlobalCopy...")
 
 if __name__ == "__main__":
     main()

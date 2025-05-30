@@ -1,6 +1,7 @@
 globalcopy_custom.ini
+globalcopy.yaml
 TODO*
-
+local/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
